@@ -1,10 +1,48 @@
-import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import { useTamboThread, useTamboThreadInput, type TamboThread, type TamboThreadMessage } from "@tambo-ai/react";
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Send, Sparkles, Paperclip, Share2, MoreVertical, MessageSquare } from "lucide-react";
 import { components } from "@/tambo/registry";
 import { Sidebar } from "./Sidebar";
+
+const TRANSIENT_STATUS_PREFIXES = ["tambo ai is thinking"];
+
+function isTransientStatusMessage(message: TamboThreadMessage) {
+    if (message.role === "user") return false;
+    if (!Array.isArray(message.content) || message.content.length === 0) return false;
+
+    if (message.metadata && typeof message.metadata === "object") {
+        const metadata = message.metadata as Record<string, unknown>;
+        if (
+            metadata.transient === true ||
+            metadata.isTransient === true ||
+            metadata.kind === "status" ||
+            metadata.type === "status"
+        ) {
+            return true;
+        }
+    }
+
+    const normalizedText = message.content
+        .map((part) => (part.type === "text" ? part.text ?? "" : ""))
+        .join("")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase()
+        .replace(/^[^a-z0-9]+/g, "")
+        .replace(/[.!?\u2026]+$/g, "")
+        .trim();
+
+    if (!normalizedText) return false;
+
+    return TRANSIENT_STATUS_PREFIXES.some((prefix) => normalizedText === prefix);
+}
+
+function getVisibleMessages(thread: TamboThread | undefined, streaming: boolean) {
+    const messages = thread?.messages ?? [];
+    return streaming ? messages : messages.filter((message) => !isTransientStatusMessage(message));
+}
 
 export function TamboCanvas() {
     const { thread, streaming, generationStage, generationStatusMessage } = useTamboThread();
