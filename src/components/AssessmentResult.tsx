@@ -11,7 +11,7 @@ interface AssessmentResultProps {
 export function AssessmentResult({ score = 0, total = 0, summary = "Assessment completed." }: AssessmentResultProps) {
     const { sendThreadMessage } = useTamboThread();
     const hasQuestions = total > 0;
-    const percentage = hasQuestions ? Math.round((score / total) * 100) : null;
+    const percentage = hasQuestions ? Math.round((score / total) * 100) : 0;
     const restartMessage = "Start a new assessment about a different topic";
 
     return (

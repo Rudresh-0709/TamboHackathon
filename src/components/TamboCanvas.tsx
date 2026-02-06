@@ -1,4 +1,4 @@
-import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import { useTamboThread, useTamboThreadInput, type TamboThread, type TamboThreadMessage } from "@tambo-ai/react";
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -7,15 +7,21 @@ import { components } from "@/tambo/registry";
 
 const TRANSIENT_STATUS_PREFIXES = ["tambo ai is thinking"];
 
-function isTransientStatusMessage(message: {
-    role: string;
-    content: Array<{ type: string; text?: string }>;
-}) {
+function isTransientStatusMessage(message: TamboThreadMessage) {
     if (message.role === "user") return false;
     if (!Array.isArray(message.content) || message.content.length === 0) return false;
 
-    const hasNonTextPart = message.content.some((part) => part.type !== "text");
-    if (hasNonTextPart) return false;
+    if (message.metadata && typeof message.metadata === "object") {
+        const metadata = message.metadata as Record<string, unknown>;
+        if (
+            metadata.transient === true ||
+            metadata.isTransient === true ||
+            metadata.kind === "status" ||
+            metadata.type === "status"
+        ) {
+            return true;
+        }
+    }
 
     const normalizedText = message.content
         .map((part) => (part.type === "text" ? part.text ?? "" : ""))
@@ -23,10 +29,17 @@ function isTransientStatusMessage(message: {
         .replace(/\s+/g, " ")
         .trim()
         .toLowerCase()
+        .replace(/^[^a-z0-9]+/g, "")
         .replace(/[.!?\u2026]+$/g, "")
         .trim();
 
+    if (!normalizedText) return false;
+
     return TRANSIENT_STATUS_PREFIXES.some((prefix) => normalizedText.startsWith(prefix));
+}
+
+function getVisibleMessages(thread: TamboThread | undefined) {
+    return (thread?.messages ?? []).filter((message) => !isTransientStatusMessage(message));
 }
 
 export function TamboCanvas() {
@@ -36,7 +49,7 @@ export function TamboCanvas() {
 
     const isError = generationStage === "ERROR";
 
-    const messages = (thread?.messages || []).filter((message) => !isTransientStatusMessage(message));
+    const messages = getVisibleMessages(thread);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,9 +101,7 @@ export function TamboCanvas() {
                         const rawName = message.component?.componentName ?? legacyComponentName;
 
                         // Fix for Duplicate Keys: Use message.id if valid, otherwise use index fallback
-                        const messageKey = message.id && message.id !== ""
-                            ? message.id
-                            : `msg-${message.role}-${message.createdAt}-${index}`;
+                        const messageKey = message.id && message.id !== "" ? message.id : `msg-${message.createdAt ?? "unknown"}-${index}`;
 
                         if (message.component && rawName) {
                             componentDef = components.find(c => c.name === rawName);
