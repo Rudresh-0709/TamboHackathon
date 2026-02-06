@@ -35,11 +35,12 @@ function isTransientStatusMessage(message: TamboThreadMessage) {
 
     if (!normalizedText) return false;
 
-    return TRANSIENT_STATUS_PREFIXES.some((prefix) => normalizedText.startsWith(prefix));
+    return TRANSIENT_STATUS_PREFIXES.some((prefix) => normalizedText === prefix);
 }
 
-function getVisibleMessages(thread: TamboThread | undefined) {
-    return (thread?.messages ?? []).filter((message) => !isTransientStatusMessage(message));
+function getVisibleMessages(thread: TamboThread | undefined, streaming: boolean) {
+    const messages = thread?.messages ?? [];
+    return streaming ? messages : messages.filter((message) => !isTransientStatusMessage(message));
 }
 
 export function TamboCanvas() {
@@ -49,7 +50,7 @@ export function TamboCanvas() {
 
     const isError = generationStage === "ERROR";
 
-    const messages = getVisibleMessages(thread);
+    const messages = getVisibleMessages(thread, streaming);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
