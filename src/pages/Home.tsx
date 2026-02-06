@@ -25,7 +25,7 @@ export function Home({ onStart }: HomeProps) {
                             <a href="#" className="text-sm font-medium hover:text-primary transition-colors">Docs</a>
                         </nav>
                         <div className="flex items-center gap-3">
-                            <button className="px-4 py-2 text-sm font-semibold hover:text-primary transition-colors">Login</button>
+                            <button onClick={onStart} className="px-4 py-2 text-sm font-semibold hover:text-primary transition-colors cursor-pointer">Login</button>
                             <button
                                 onClick={onStart}
                                 className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-all shadow-lg shadow-primary/20 cursor-pointer"
@@ -50,8 +50,16 @@ export function Home({ onStart }: HomeProps) {
                                     </span>
                                     Now powered by GPT-4o
                                 </div>
-                                <h1 className="relative z-10 text-5xl lg:text-7xl font-black leading-tight tracking-tight text-black">
-                                    Assessments that <span className="text-primary">Adapt</span> in Real-Time
+                                <h1 className="relative z-10 text-[5rem] lg:text-[7rem] font-black leading-none tracking-tighter text-black mb-6">
+                                    Assessments that <span className="relative inline-block">
+                                        <span className="text-primary">Adapt</span>
+                                        {/* Decorative animated underlines */}
+                                        <svg className="absolute -bottom-2 lg:-bottom-4 left-0 w-full h-4 lg:h-6" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                            <path d="M2 10C50 4 150 4 198 10" stroke="#FF6B6B" strokeWidth="2.5" strokeLinecap="round" className="animate-pulse" style={{ animationDuration: '2s', animationDelay: '0s' }} />
+                                            <path d="M2 6C50 2 150 2 198 6" stroke="#4ECDC4" strokeWidth="2.5" strokeLinecap="round" className="animate-pulse" style={{ animationDuration: '2s', animationDelay: '0.3s' }} />
+                                            <path d="M2 2C50 0 150 0 198 2" stroke="#FFE66D" strokeWidth="2.5" strokeLinecap="round" className="animate-pulse" style={{ animationDuration: '2s', animationDelay: '0.6s' }} />
+                                        </svg>
+                                    </span> <span className="block lg:inline">in Real-Time</span>
                                 </h1>
                                 <p className="relative z-10 text-lg lg:text-xl text-gray-800 leading-relaxed max-w-xl">
                                     Leverage the Tambo AI SDK to create dynamic, generative test interfaces that personalize the learning journey for every student based on performance.
@@ -79,38 +87,30 @@ export function Home({ onStart }: HomeProps) {
                             </div>
                             <div className="relative">
                                 {/* Abstract UI Representation */}
-                                <div className="relative z-10 rounded-2xl border border-slate-200 bg-slate-900 shadow-2xl overflow-hidden aspect-[4/3]">
-                                    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800/50">
+                                <div className="relative z-10 rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden aspect-[4/3]">
+                                    <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-slate-800">
                                         <div className="flex gap-1.5">
                                             <div className="w-3 h-3 rounded-full bg-red-400"></div>
                                             <div className="w-3 h-3 rounded-full bg-amber-400"></div>
                                             <div className="w-3 h-3 rounded-full bg-green-400"></div>
                                         </div>
-                                        <div className="text-xs font-mono text-slate-400">tambo-sdk-preview.tsx</div>
+                                        <div className="ml-2 h-2 w-32 bg-slate-700 rounded-full"></div>
                                     </div>
-                                    <div className="p-6 grid grid-cols-2 gap-6 h-full">
-                                        <div className="space-y-4">
-                                            <div className="h-4 bg-slate-800 rounded w-3/4"></div>
-                                            <div className="h-32 bg-primary/5 rounded-lg border border-primary/20 p-4">
-                                                <div className="h-2 bg-primary/20 rounded w-full mb-2"></div>
-                                                <div className="h-2 bg-primary/20 rounded w-5/6 mb-2"></div>
-                                                <div className="h-2 bg-primary/20 rounded w-4/6"></div>
+                                    <div className="p-8 h-full bg-slate-900 flex flex-col justify-center">
+                                        <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 rounded-2xl p-8 border border-indigo-500/20 flex flex-col items-center text-center shadow-sm mb-4">
+                                            <div className="w-16 h-16 bg-slate-800 rounded-xl shadow-lg shadow-black/20 flex items-center justify-center mb-6 border border-slate-700">
+                                                <div className="w-8 h-5 bg-primary rounded-sm shadow-md shadow-primary/20"></div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div className="h-10 border border-slate-700 rounded p-2"></div>
-                                                <div className="h-10 border border-slate-700 rounded p-2"></div>
-                                            </div>
+                                            <h3 className="text-xl font-black text-white mb-2">Adaptive Math Challenge</h3>
+                                            <p className="text-slate-400 text-sm font-medium">Generative problem based on your last 3 correct answers</p>
                                         </div>
-                                        <div className="bg-slate-900 rounded-lg p-4 font-mono text-[10px] text-blue-300">
-                                            <p className="mb-1"><span className="text-purple-400">const</span> <span className="text-yellow-400">Assessment</span> = () =&gt; {"{"}</p>
-                                            <p className="ml-4 mb-1"><span className="text-purple-400">const</span> {"{ adaptiveUI }"} = useTambo();</p>
-                                            <p className="ml-4 mb-1">return (</p>
-                                            <p className="ml-8 mb-1"><span className="text-blue-400">&lt;GenerativeLayout</span></p>
-                                            <p className="ml-12 mb-1">mode=<span className="text-green-400">"adaptive"</span></p>
-                                            <p className="ml-12 mb-1">complexity={"{"}performance{"}"}</p>
-                                            <p className="ml-8 mb-1"><span className="text-blue-400">/&gt;</span></p>
-                                            <p className="ml-4 mb-1">);</p>
-                                            <p className="mb-1">{"};"}</p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button className="py-3 px-4 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/10 transition-colors bg-primary/5">
+                                                Option A
+                                            </button>
+                                            <button className="py-3 px-4 rounded-xl border border-slate-700 text-slate-300 font-bold hover:bg-slate-800 transition-colors">
+                                                Option B
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

@@ -3,8 +3,7 @@ import { QuestionCard } from "./core/QuestionCard";
 import { useTamboThread } from "@tambo-ai/react";
 
 export function StartAssessment({ topic = "your chosen topic" }: { topic?: string }) {
-    const { sendThreadMessage, streaming } = useTamboThread();
-    const startMessage = "I am ready. Please give me the first question.";
+    const { submit, setValue } = useTamboThreadInput();
 
     return (
         <QuestionCard title={`Ready for ${topic}?`}>
@@ -19,12 +18,10 @@ export function StartAssessment({ topic = "your chosen topic" }: { topic?: strin
                 </p>
 
                 <button
-                    onClick={() =>
-                        void sendThreadMessage(startMessage, {
-                            additionalContext: { message: startMessage },
-                        })
-                    }
-                    disabled={streaming}
+                    onClick={() => {
+                        setValue("I am ready. Please give me the first question.");
+                        setTimeout(() => submit(), 0);
+                    }}
                     className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-lg hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/25"
                 >
                     Start Assessment

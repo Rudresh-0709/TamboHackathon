@@ -20,7 +20,7 @@ export function QuestionCard({ children, className, title }: QuestionCardProps) 
             )}
         >
             {title && (
-                <h2 className="text-xl font-semibold mb-6 text-foreground">{title}</h2>
+                <h2 className="text-xl font-semibold mb-6 text-white">{title}</h2>
             )}
             {children}
         </motion.div>

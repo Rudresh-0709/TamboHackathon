@@ -4,13 +4,23 @@ import { components } from "./tambo/registry";
 import { TamboCanvas } from "./components/TamboCanvas";
 import { AlertCircle } from "lucide-react";
 import { Home } from "./pages/Home";
+import { Dashboard } from "./pages/Dashboard";
+import { InteractiveModel } from "./components/InteractiveModel";
 
 function App() {
-  const [view, setView] = useState<'home' | 'app'>('home');
+  const [view, setView] = useState<'home' | 'dashboard' | 'chat' | 'file'>('home');
   const apiKey = import.meta.env.VITE_TAMBO_API_KEY;
 
   if (view === 'home') {
-    return <Home onStart={() => setView('app')} />;
+    return <Home onStart={() => setView('dashboard')} />;
+  }
+
+  if (view === 'dashboard') {
+    return <Dashboard onNavigate={(nextView) => setView(nextView)} />;
+  }
+
+  if (view === 'file') {
+    return <InteractiveModel />;
   }
 
   if (!apiKey) {
