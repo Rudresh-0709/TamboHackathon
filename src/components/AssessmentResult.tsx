@@ -9,7 +9,7 @@ interface AssessmentResultProps {
 }
 
 export function AssessmentResult({ score = 0, total = 0, summary = "Assessment completed." }: AssessmentResultProps) {
-    const { sendThreadMessage } = useTamboThread();
+    const { sendThreadMessage, streaming } = useTamboThread();
     const hasQuestions = total > 0;
     const percentage = hasQuestions ? Math.round((score / total) * 100) : 0;
     const restartMessage = "Start a new assessment about a different topic";
@@ -52,6 +52,7 @@ export function AssessmentResult({ score = 0, total = 0, summary = "Assessment c
                         additionalContext: { message: restartMessage },
                     });
                 }}
+                disabled={streaming}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-all hover:scale-105 active:scale-95"
             >
                 <RefreshCcw className="w-4 h-4" />
