@@ -148,13 +148,13 @@ export function TamboCanvas() {
                                                 <ComponentToRender
                                                     {...message.component.props}
                                                     onSubmit={(isCorrect: boolean) => {
-                                                        submit({
-                                                            additionalContext: {
-                                                                message: isCorrect
-                                                                    ? "User answered correctly."
-                                                                    : "User answered incorrectly."
-                                                            }
-                                                        });
+                                                        const msg = isCorrect
+                                                            ? "User answered correctly. Please provide the next question."
+                                                            : "User answered incorrectly. Please provide feedback and the next question.";
+
+                                                        setValue(msg);
+                                                        // Yield to event loop to allow value update
+                                                        setTimeout(() => submit(), 0);
                                                     }}
                                                 />
                                             </motion.div>

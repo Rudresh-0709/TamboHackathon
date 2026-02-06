@@ -1,10 +1,17 @@
+import { useState } from "react";
 import { TamboProvider } from "@tambo-ai/react";
 import { components } from "./tambo/registry";
 import { TamboCanvas } from "./components/TamboCanvas";
 import { AlertCircle } from "lucide-react";
+import { Home } from "./pages/Home";
 
 function App() {
+  const [view, setView] = useState<'home' | 'app'>('home');
   const apiKey = import.meta.env.VITE_TAMBO_API_KEY;
+
+  if (view === 'home') {
+    return <Home onStart={() => setView('app')} />;
+  }
 
   if (!apiKey) {
     return (

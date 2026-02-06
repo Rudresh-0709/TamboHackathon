@@ -4,9 +4,12 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
+        "background-light": "#f6f6f8",
+        "background-dark": "#101322",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -18,7 +21,7 @@ export default {
           foreground: "hsl(var(--popover-foreground))",
         },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "#1337ec",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -47,6 +50,10 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+      },
+      fontFamily: {
+        "sans": ["Lexend", "sans-serif"],
+        "display": ["Lexend", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
