@@ -1,4 +1,4 @@
-import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import { useTamboThread, useTamboThreadInput, useTamboClient } from "@tambo-ai/react";
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { components } from "@/tambo/registry";
 export function TamboCanvas() {
     const { thread, streaming, generationStage, generationStatusMessage } = useTamboThread();
     const { value, setValue, submit } = useTamboThreadInput();
+    const client = useTamboClient();
     const bottomRef = useRef<HTMLDivElement>(null);
 
     const isError = generationStage === "ERROR";
