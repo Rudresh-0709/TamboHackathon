@@ -1,9 +1,9 @@
 import { Play } from "lucide-react";
 import { QuestionCard } from "./core/QuestionCard";
-import { useTamboThreadInput } from "@tambo-ai/react";
+import { useTamboThread } from "@tambo-ai/react";
 
 export function StartAssessment({ topic = "your chosen topic" }: { topic?: string }) {
-    const { submit } = useTamboThreadInput();
+    const { sendThreadMessage } = useTamboThread();
 
     return (
         <QuestionCard title={`Ready for ${topic}?`}>
@@ -18,7 +18,7 @@ export function StartAssessment({ topic = "your chosen topic" }: { topic?: strin
                 </p>
 
                 <button
-                    onClick={() => submit({ additionalContext: { message: "I am ready. Please give me the first question." } })}
+                    onClick={() => void sendThreadMessage("I am ready. Please give me the first question.")}
                     className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-lg hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/25"
                 >
                     Start Assessment

@@ -1,6 +1,6 @@
 import { QuestionCard } from "./core/QuestionCard";
 import { Trophy, RefreshCcw } from "lucide-react";
-import { useTamboThreadInput } from "@tambo-ai/react";
+import { useTamboThread } from "@tambo-ai/react";
 
 interface AssessmentResultProps {
     score?: number;
@@ -9,7 +9,7 @@ interface AssessmentResultProps {
 }
 
 export function AssessmentResult({ score = 0, total = 0, summary = "Assessment completed." }: AssessmentResultProps) {
-    const { setValue, submit } = useTamboThreadInput();
+    const { sendThreadMessage } = useTamboThread();
     const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
 
     return (
@@ -40,9 +40,7 @@ export function AssessmentResult({ score = 0, total = 0, summary = "Assessment c
 
             <button
                 onClick={() => {
-                    setValue("Start a new assessment about a different topic");
-                    // Yield to event loop to allow value update
-                    setTimeout(() => submit(), 0);
+                    void sendThreadMessage("Start a new assessment about a different topic");
                 }}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-all hover:scale-105 active:scale-95"
             >
