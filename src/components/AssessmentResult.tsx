@@ -3,12 +3,12 @@ import { Trophy, RefreshCcw } from "lucide-react";
 import { useTambo } from "@tambo-ai/react";
 
 interface AssessmentResultProps {
-    score: number;
-    total: number;
-    summary: string;
+    score?: number;
+    total?: number;
+    summary?: string;
 }
 
-export function AssessmentResult({ score, total, summary }: AssessmentResultProps) {
+export function AssessmentResult({ score = 0, total = 0, summary = "Assessment completed." }: AssessmentResultProps) {
     const { speak } = useTambo();
     const percentage = Math.round((score / total) * 100);
 

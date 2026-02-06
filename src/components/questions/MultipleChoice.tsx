@@ -4,14 +4,20 @@ import { cn } from "@/lib/utils";
 import { Check, X } from "lucide-react";
 
 interface MultipleChoiceProps {
-    question: string;
-    options: string[];
-    correctAnswer: string;
+    question?: string;
+    options?: string[];
+    correctAnswer?: string;
     explanation?: string;
     onSubmit: (isCorrect: boolean) => void;
 }
 
-export function MultipleChoice({ question, options, correctAnswer, explanation, onSubmit }: MultipleChoiceProps) {
+export function MultipleChoice({
+    question = "Loading question...",
+    options = [],
+    correctAnswer = "",
+    explanation,
+    onSubmit
+}: MultipleChoiceProps) {
     const [selected, setSelected] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
 

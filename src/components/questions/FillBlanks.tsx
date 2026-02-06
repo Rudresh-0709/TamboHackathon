@@ -3,12 +3,12 @@ import { QuestionCard } from "../core/QuestionCard";
 import { cn } from "@/lib/utils";
 
 interface FillBlanksProps {
-    sentence: string;
-    blanks: string[];
+    sentence?: string;
+    blanks?: string[];
     onSubmit: (isCorrect: boolean) => void;
 }
 
-export function FillBlanks({ sentence, blanks, onSubmit }: FillBlanksProps) {
+export function FillBlanks({ sentence = "...", blanks = [], onSubmit }: FillBlanksProps) {
     const [inputs, setInputs] = useState<string[]>(new Array(blanks.length).fill(""));
     const [submitted, setSubmitted] = useState(false);
 

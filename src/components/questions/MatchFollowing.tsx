@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 interface MatchFollowingProps {
-    pairs: { left: string; right: string }[];
+    pairs?: { left: string; right: string }[];
     onSubmit: (isCorrect: boolean) => void;
 }
 
-export function MatchFollowing({ pairs, onSubmit }: MatchFollowingProps) {
+export function MatchFollowing({ pairs = [], onSubmit }: MatchFollowingProps) {
     const [leftItems] = useState(() => pairs.map(p => p.left).sort(() => Math.random() - 0.5));
     const [rightItems] = useState(() => pairs.map(p => p.right).sort(() => Math.random() - 0.5));
 

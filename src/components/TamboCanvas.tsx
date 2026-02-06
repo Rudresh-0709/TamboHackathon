@@ -49,7 +49,7 @@ export function TamboCanvas() {
                             <p className="text-white/40 font-light">Start a topic to begin assessment</p>
                         </div>
                     )}
-                    {messages.map((message) => {
+                    {messages.map((message, index) => {
                         // ULTRA-ROBUST MATCHING
                         // 1. Try exact match
                         // 2. Try normalizing both to alphanumeric lowercase (ignores case, dashes, underscores)
@@ -57,6 +57,9 @@ export function TamboCanvas() {
 
                         // Check if component exists and has a name property (handle both name and componentName just in case)
                         const rawName = message.component?.componentName || (message.component as any)?.name;
+
+                        // Fix for Duplicate Keys: Use message.id if valid, otherwise use index fallback
+                        const messageKey = (message.id && message.id !== "") ? message.id : `msg-${index}-${Date.now()}`;
 
                         if (message.component && rawName) {
                             componentDef = components.find(c => c.name === rawName);
@@ -105,7 +108,7 @@ export function TamboCanvas() {
 
                         return (
                             <motion.div
-                                key={message.id || Math.random().toString()}
+                                key={messageKey}
                                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 transition={{
@@ -141,7 +144,18 @@ export function TamboCanvas() {
                                                 transition={{ delay: 0.2 }}
                                                 className="pl-12"
                                             >
-                                                <ComponentToRender {...message.component.props} />
+                                                <ComponentToRender
+                                                    {...message.component.props}
+                                                    onSubmit={(isCorrect: boolean) => {
+                                                        submit({
+                                                            additionalContext: {
+                                                                message: isCorrect
+                                                                    ? "User answered correctly."
+                                                                    : "User answered incorrectly."
+                                                            }
+                                                        });
+                                                    }}
+                                                />
                                             </motion.div>
                                         )}
                                     </div>

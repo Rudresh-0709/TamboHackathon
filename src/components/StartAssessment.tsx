@@ -6,7 +6,7 @@ interface StartAssessmentProps {
     topic: string;
 }
 
-export function StartAssessment({ topic }: StartAssessmentProps) {
+export function StartAssessment({ topic = "your chosen topic" }: { topic?: string }) {
     const { submit } = useTamboThreadInput();
 
     return (
