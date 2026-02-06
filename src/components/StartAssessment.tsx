@@ -18,7 +18,11 @@ export function StartAssessment({ topic = "your chosen topic" }: { topic?: strin
                 </p>
 
                 <button
-                    onClick={() => void sendThreadMessage("I am ready. Please give me the first question.")}
+                    onClick={() =>
+                        void sendThreadMessage("I am ready. Please give me the first question.", {
+                            additionalContext: { message: "I am ready. Please give me the first question." },
+                        })
+                    }
                     className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-lg hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/25"
                 >
                     Start Assessment
