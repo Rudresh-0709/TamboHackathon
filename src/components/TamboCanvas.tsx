@@ -1,4 +1,4 @@
-import { useTamboThread, useTamboThreadInput, useTamboClient } from "@tambo-ai/react";
+import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -8,12 +8,31 @@ import { components } from "@/tambo/registry";
 export function TamboCanvas() {
     const { thread, streaming, generationStage, generationStatusMessage } = useTamboThread();
     const { value, setValue, submit } = useTamboThreadInput();
-    const client = useTamboClient();
     const bottomRef = useRef<HTMLDivElement>(null);
 
     const isError = generationStage === "ERROR";
 
-    const messages = thread?.messages || [];
+    const messages = (thread?.messages || []).filter((message) => {
+        // Tambo sometimes emits transient status messages like "Tambo AI is thinking ..."
+        // as real thread messages. They are useful while streaming, but should not
+        // stick around in the conversation history.
+        if (message.role === "user") return true;
+        if (!Array.isArray(message.content) || message.content.length === 0) return true;
+
+        const hasNonTextPart = message.content.some((part) => part.type !== "text");
+        if (hasNonTextPart) return true;
+
+        const text = message.content
+            .map((part) => (part.type === "text" ? part.text : ""))
+            .join("")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLowerCase()
+            .replace(/[.\u2026]+$/g, "")
+            .trim();
+
+        return text !== "tambo ai is thinking";
+    });
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,10 +76,12 @@ export function TamboCanvas() {
                         let componentDef = null;
 
                         // Check if component exists and has a name property (handle both name and componentName just in case)
-                        const rawName = message.component?.componentName || (message.component as any)?.name;
+                        const rawName = message.component?.componentName;
 
                         // Fix for Duplicate Keys: Use message.id if valid, otherwise use index fallback
-                        const messageKey = (message.id && message.id !== "") ? message.id : `msg-${index}-${Date.now()}`;
+                        const messageKey = message.id && message.id !== ""
+                            ? message.id
+                            : `msg-${message.role}-${message.createdAt}-${index}`;
 
                         if (message.component && rawName) {
                             componentDef = components.find(c => c.name === rawName);

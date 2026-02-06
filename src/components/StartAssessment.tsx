@@ -2,10 +2,6 @@ import { Play } from "lucide-react";
 import { QuestionCard } from "./core/QuestionCard";
 import { useTamboThreadInput } from "@tambo-ai/react";
 
-interface StartAssessmentProps {
-    topic: string;
-}
-
 export function StartAssessment({ topic = "your chosen topic" }: { topic?: string }) {
     const { submit } = useTamboThreadInput();
 
