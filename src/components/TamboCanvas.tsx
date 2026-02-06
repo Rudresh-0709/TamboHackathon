@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Send, Sparkles, Bot } from "lucide-react";
 import { components } from "@/tambo/registry";
 
-const TRANSIENT_STATUS_MESSAGES = new Set(["tambo ai is thinking"]);
+const TRANSIENT_STATUS_PREFIXES = ["tambo ai is thinking"];
 
 function isTransientStatusMessage(message: {
     role: string;
@@ -23,10 +23,10 @@ function isTransientStatusMessage(message: {
         .replace(/\s+/g, " ")
         .trim()
         .toLowerCase()
-        .replace(/[.\u2026]+$/g, "")
+        .replace(/[.!?\u2026]+$/g, "")
         .trim();
 
-    return TRANSIENT_STATUS_MESSAGES.has(normalizedText);
+    return TRANSIENT_STATUS_PREFIXES.some((prefix) => normalizedText.startsWith(prefix));
 }
 
 export function TamboCanvas() {
@@ -81,11 +81,8 @@ export function TamboCanvas() {
 
                         // Check if component exists and has a name property (handle both name and componentName just in case)
                         const legacyComponentName = (() => {
-                            const maybeLegacy = message.component as unknown;
-                            if (maybeLegacy && typeof (maybeLegacy as { name?: unknown }).name === "string") {
-                                return (maybeLegacy as { name: string }).name;
-                            }
-                            return undefined;
+                            const maybeLegacy = message.component as unknown as { name?: unknown } | undefined;
+                            return typeof maybeLegacy?.name === "string" ? maybeLegacy.name : undefined;
                         })();
 
                         const rawName = message.component?.componentName ?? legacyComponentName;
