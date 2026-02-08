@@ -11,7 +11,8 @@ function App() {
   const [view, setView] = useState<'home' | 'dashboard' | 'chat' | 'file'>('home');
   const apiKey = import.meta.env.VITE_TAMBO_API_KEY;
 
-  const [initialPrompt, setInitialPrompt] = useState<string>('');
+  const [initialPrompt, setInitialPrompt] = useState<string | string[]>('');
+  const [sessionId, setSessionId] = useState(0);
 
   if (view === 'home') {
     return <Home onStart={() => setView('dashboard')} />;
@@ -27,6 +28,7 @@ function App() {
         onNavigate={(nextView) => setView(nextView)}
         onStartAssessment={(prompt) => {
           setInitialPrompt(prompt);
+          setSessionId(prev => prev + 1);
           setView('chat');
         }}
       />
@@ -58,8 +60,8 @@ function App() {
       components={components}
     >
       <TamboCanvas
+        key={sessionId}
         initialPrompt={initialPrompt}
-        onPromptSent={() => setInitialPrompt('')}
       />
     </TamboProvider>
   );

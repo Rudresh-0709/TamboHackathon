@@ -1,9 +1,15 @@
 import { Bell, Search, UploadCloud, ChevronDown, Check, Zap, ArrowRight, FileText, Plus, Loader2, X } from "lucide-react";
 import { useState, useRef } from "react";
+import * as pdfjsLib from 'pdfjs-dist';
+// @ts-ignore - pdfjs-dist worker import is specialized in Vite
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+
+// Define worker source using local bundle
+const PDF_WORKER_URL = pdfWorker;
 
 interface InteractiveModelProps {
     onNavigate: (view: 'chat' | 'file' | 'dashboard') => void;
-    onStartAssessment: (prompt: string) => void;
+    onStartAssessment: (prompt: string | string[]) => void;
 }
 
 export function InteractiveModel({ onNavigate, onStartAssessment }: InteractiveModelProps) {
@@ -19,18 +25,65 @@ export function InteractiveModel({ onNavigate, onStartAssessment }: InteractiveM
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) await processFile(file);
+        console.log("File selected:", file?.name, file?.type);
+        if (file) {
+            await processFile(file);
+            // Reset input so same file can be selected again
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
     };
 
     const processFile = async (file: File) => {
+        console.log("Processing file:", file.name);
         setFileName(file.name);
         setIsReading(true);
+        setFileContent(null); // Clear previous content
+
         try {
-            const text = await file.text();
+            let text = "";
+            if (file.type === "application/pdf" || file.name.toLowerCase().endsWith('.pdf')) {
+                console.log("PDF detected, using pdfjsLib");
+
+                // Initialize worker inside processing to catch potential initialization errors
+                if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_URL;
+                }
+
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({
+                    data: arrayBuffer,
+                    useWorkerFetch: true,
+                    isEvalSupported: false
+                });
+
+                const pdf = await loadingTask.promise;
+                const numPages = pdf.numPages;
+                console.log(`PDF loaded. Pages: ${numPages}`);
+
+                for (let i = 1; i <= numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items
+                        .map((item: any) => item.str)
+                        .join(" ");
+                    text += pageText + "\n";
+                }
+
+                if (!text.trim()) {
+                    throw new Error("No text content found in PDF. It might be an image-only PDF.");
+                }
+            } else {
+                console.log("Non-PDF file detected, reading as text");
+                text = await file.text();
+            }
+
+            console.log(`Successfully read ${text.length} characters`);
             setFileContent(text);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error reading file:", error);
-            alert("Failed to read file.");
+            alert(`Failed to read file: ${error.message || "Unknown error"}`);
+            setFileName(null);
+            setFileContent(null);
         } finally {
             setIsReading(false);
         }
@@ -43,25 +96,95 @@ export function InteractiveModel({ onNavigate, onStartAssessment }: InteractiveM
         if (file) await processFile(file);
     };
 
+    const extractRelevantContent = (text: string, topic: string) => {
+        const INTRO_SIZE = 5000;
+        const SNIPPET_SIZE = 2000;
+        const MAX_SNIPPETS = 8;
+
+        let extracted = `[DOCUMENT OVERVIEW / INTRODUCTION]\n${text.slice(0, INTRO_SIZE)}\n\n`;
+
+        if (topic && topic.length > 2) {
+            extracted += `[RELEVANT SECTIONS FOR TOPIC: "${topic}"]\n`;
+            const regex = new RegExp(topic.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            let match;
+            let count = 0;
+            const seenIndices = new Set<number>();
+
+            while ((match = regex.exec(text)) !== null && count < MAX_SNIPPETS) {
+                const index = match.index;
+                // Avoid overlapping snippets
+                const isOverlapping = Array.from(seenIndices).some(i => Math.abs(i - index) < SNIPPET_SIZE);
+                if (isOverlapping) continue;
+
+                const start = Math.max(0, index - SNIPPET_SIZE / 2);
+                const end = Math.min(text.length, index + SNIPPET_SIZE / 2);
+                extracted += `--- SECTION AT OFFSET ${index} ---\n...${text.slice(start, end)}...\n\n`;
+
+                seenIndices.add(index);
+                count++;
+            }
+
+            if (count === 0) {
+                extracted += `(Note: No direct matches for "${topic}" found in the deeper layers of the document. Using general sections instead.)\n`;
+                extracted += `[GENERAL CONTENT SAMPLE]\n${text.slice(INTRO_SIZE, INTRO_SIZE + (SNIPPET_SIZE * 3))}\n`;
+            }
+        } else {
+            extracted += `[GENERAL CONTENT SAMPLE]\n${text.slice(INTRO_SIZE, INTRO_SIZE + (SNIPPET_SIZE * 5))}\n`;
+        }
+
+        return extracted;
+    };
+
     const handleGenerate = () => {
         if (!fileContent && !topic) {
             alert("Please provide a file or a topic.");
             return;
         }
 
-        const prompt = `
+        let processedContent = fileContent || "No file provided.";
+        const isMassive = fileContent && fileContent.length > 100000;
+
+        if (isMassive && fileContent) {
+            console.log("Massive file detected, performing relevance extraction...");
+            processedContent = extractRelevantContent(fileContent, topic);
+        }
+
+        const CHUNK_SIZE = 6000; // Even safer for massive files
+        if (processedContent.length > CHUNK_SIZE) {
+            const chunks: string[] = [];
+            const totalLength = processedContent.length;
+            let current = 0;
+            let partIndex = 1;
+
+            while (current < totalLength) {
+                const chunk = processedContent.slice(current, current + CHUNK_SIZE);
+                const isFinal = current + CHUNK_SIZE >= totalLength;
+                const totalParts = Math.ceil(totalLength / CHUNK_SIZE);
+
+                if (!isFinal) {
+                    chunks.push(`INTERNAL_SYNC_PART_${partIndex}_OF_${totalParts}\nCONTENT:\n${chunk}\n\nACTION: Just acknowledge receipt by saying "RECEIVING_PART_${partIndex}". Do not generate anything yet.`);
+                } else {
+                    chunks.push(`INTERNAL_SYNC_PART_${partIndex}_OF_${totalParts}\nCONTENT:\n${chunk}\n\nCONTEXT:\n- Topic: ${topic || "General"}\n- Audience: ${audience}\n- Complexity: ${complexity}\n- Processing Mode: ${isMassive ? 'Optimized Relevance Extraction' : 'Full Content'}\n\nACTION: Now that you have the full material, please generate the assessment as requested.`);
+                }
+
+                current += CHUNK_SIZE;
+                partIndex++;
+            }
+            onStartAssessment(chunks);
+        } else {
+            const prompt = `
 Context:
 - Topic: ${topic || "General"}
 - Audience: ${audience}
 - Complexity: ${complexity}
 
 Content:
-${fileContent ? fileContent.slice(0, 20000) : "No file provided."}
+${processedContent}
 
 Please generate an assessment based on the above context and content.
-        `.trim();
-
-        onStartAssessment(prompt);
+            `.trim();
+            onStartAssessment(prompt);
+        }
     };
 
     return (
@@ -130,6 +253,11 @@ Please generate an assessment based on the above context and content.
                         <div className="flex-1 py-4 text-center border-b-2 border-primary">
                             <span className="text-primary font-bold flex items-center justify-center gap-2">
                                 <FileText className="w-4 h-4" /> Source Material
+                                {fileName && (
+                                    <span className="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5 rounded-full border border-primary/20 animate-pulse">
+                                        Active
+                                    </span>
+                                )}
                             </span>
                         </div>
                         <div className="flex-1 py-4 text-center border-b border-slate-100 bg-slate-50/50 text-slate-400">
@@ -159,7 +287,7 @@ Please generate an assessment based on the above context and content.
                                         type="file"
                                         ref={fileInputRef}
                                         className="hidden"
-                                        accept=".txt,.md,.csv,.json"
+                                        accept=".txt,.md,.csv,.json,.pdf"
                                         onChange={handleFileSelect}
                                     />
 
@@ -169,20 +297,33 @@ Please generate an assessment based on the above context and content.
                                             <p>Reading file...</p>
                                         </div>
                                     ) : fileName ? (
-                                        <div className="flex flex-col items-center text-slate-900 relative z-20">
-                                            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
-                                                <Check className="w-8 h-8 text-green-500" />
+                                        <div className="flex flex-col items-center text-slate-900 relative z-20 w-full px-6">
+                                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                                                <Check className="w-6 h-6 text-green-600" />
                                             </div>
-                                            <h4 className="text-slate-900 font-bold text-lg mb-1">{fileName}</h4>
+                                            <h4 className="text-slate-900 font-bold text-lg mb-0.5 text-center truncate w-full">{fileName}</h4>
+                                            <p className="text-slate-500 text-xs mb-4">
+                                                {fileContent ? `${fileContent.length.toLocaleString()} characters processed` : 'Processing content...'}
+                                            </p>
+
+                                            {fileContent && (
+                                                <div className="w-full bg-slate-50 border border-slate-100 rounded-lg p-3 mb-4 text-left">
+                                                    <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Content Preview</p>
+                                                    <p className="text-slate-600 text-[11px] line-clamp-3 leading-relaxed italic">
+                                                        "{fileContent.slice(0, 180)}..."
+                                                    </p>
+                                                </div>
+                                            )}
+
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setFileName(null);
                                                     setFileContent(null);
                                                 }}
-                                                className="mt-2 text-xs text-red-500 hover:underline flex items-center gap-1"
+                                                className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-red-50 transition-colors"
                                             >
-                                                <X className="w-3 h-3" /> Remove
+                                                <X className="w-3.5 h-3.5" /> Remove & Change File
                                             </button>
                                         </div>
                                     ) : (
@@ -281,9 +422,23 @@ Please generate an assessment based on the above context and content.
                     </div>
 
                     <div className="px-8 py-6 bg-white border-t border-slate-200 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                            <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">i</div>
-                            Estimated generation time: 45-60 seconds
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
+                                <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">i</div>
+                                Estimated generation time: 45-60 seconds
+                            </div>
+                            {fileContent && (
+                                <div className="flex flex-col gap-1 pl-6">
+                                    <div className="flex items-center gap-1.5 text-green-600 text-[10px] font-bold uppercase tracking-wider">
+                                        <Check className="w-3 h-3" /> {fileContent.length.toLocaleString()} chars processed
+                                    </div>
+                                    {fileContent.length > 100000 && (
+                                        <div className="flex items-center gap-1.5 text-amber-600 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                                            <Zap className="w-3 h-3 fill-amber-600" /> Massive File: Search & Extract Optimization Active
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <button
                             onClick={handleGenerate}

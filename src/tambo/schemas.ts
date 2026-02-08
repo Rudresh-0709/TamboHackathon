@@ -20,9 +20,9 @@ export const FillBlanksSchema = z.object({
 
 export const MatchFollowingSchema = z.object({
     pairs: z.array(z.object({
-        left: z.string(),
-        right: z.string()
-    })).optional().describe("Pairs of items that match together"),
+        left: z.string().optional().describe("Item on the left side to be matched"),
+        right: z.string().optional().describe("Corresponding item on the right side")
+    })).optional().describe("Array of 3-6 pairs to match. Example: [{left: 'India', right: 'New Delhi'}, {left: 'France', right: 'Paris'}]"),
 });
 
 export const AssessmentResultSchema = z.object({
