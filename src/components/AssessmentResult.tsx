@@ -1,6 +1,6 @@
 import { QuestionCard } from "./core/QuestionCard";
 import { Trophy, RefreshCcw } from "lucide-react";
-import { useTambo } from "@tambo-ai/react";
+import { useTamboThread } from "@tambo-ai/react";
 
 interface AssessmentResultProps {
     score?: number;
@@ -9,8 +9,10 @@ interface AssessmentResultProps {
 }
 
 export function AssessmentResult({ score = 0, total = 0, summary = "Assessment completed." }: AssessmentResultProps) {
-    const { speak } = useTambo();
-    const percentage = Math.round((score / total) * 100);
+    const { sendThreadMessage, streaming } = useTamboThread();
+    const hasQuestions = total > 0;
+    const percentage = hasQuestions ? Math.round((score / total) * 100) : 0;
+    const restartMessage = "Start a new assessment about a different topic";
 
     return (
         <QuestionCard className="text-center">
@@ -24,11 +26,17 @@ export function AssessmentResult({ score = 0, total = 0, summary = "Assessment c
             <p className="text-muted-foreground mb-8">Here is how you performed</p>
 
             <div className="text-6xl font-black text-foreground mb-4 tabular-nums">
-                {percentage}%
+                {hasQuestions ? `${percentage}%` : "N/A"}
             </div>
 
             <p className="text-lg mb-8 max-w-md mx-auto text-muted-foreground">
-                You scored <span className="font-bold text-foreground">{score}</span> out of <span className="font-bold text-foreground">{total}</span>.
+                {hasQuestions ? (
+                    <>
+                        You scored <span className="font-bold text-foreground">{score}</span> out of <span className="font-bold text-foreground">{total}</span>.
+                    </>
+                ) : (
+                    "No questions were included in this assessment."
+                )}
             </p>
 
             <div className="p-6 rounded-xl bg-muted/30 text-left mb-8">
@@ -39,7 +47,12 @@ export function AssessmentResult({ score = 0, total = 0, summary = "Assessment c
             </div>
 
             <button
-                onClick={() => speak("Start a new assessment about a different topic")}
+                onClick={() => {
+                    void sendThreadMessage(restartMessage, {
+                        additionalContext: { message: restartMessage },
+                    });
+                }}
+                disabled={streaming}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-all hover:scale-105 active:scale-95"
             >
                 <RefreshCcw className="w-4 h-4" />
