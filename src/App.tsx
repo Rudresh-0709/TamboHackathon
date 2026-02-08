@@ -11,6 +11,8 @@ function App() {
   const [view, setView] = useState<'home' | 'dashboard' | 'chat' | 'file'>('home');
   const apiKey = import.meta.env.VITE_TAMBO_API_KEY;
 
+  const [initialPrompt, setInitialPrompt] = useState<string>('');
+
   if (view === 'home') {
     return <Home onStart={() => setView('dashboard')} />;
   }
@@ -20,7 +22,15 @@ function App() {
   }
 
   if (view === 'file') {
-    return <InteractiveModel />;
+    return (
+      <InteractiveModel
+        onNavigate={(nextView) => setView(nextView)}
+        onStartAssessment={(prompt) => {
+          setInitialPrompt(prompt);
+          setView('chat');
+        }}
+      />
+    );
   }
 
   if (!apiKey) {
@@ -47,7 +57,10 @@ function App() {
       apiKey={apiKey}
       components={components}
     >
-      <TamboCanvas />
+      <TamboCanvas
+        initialPrompt={initialPrompt}
+        onPromptSent={() => setInitialPrompt('')}
+      />
     </TamboProvider>
   );
 }

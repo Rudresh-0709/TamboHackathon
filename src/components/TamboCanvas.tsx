@@ -1,123 +1,126 @@
-import { useTamboThread, useTamboThreadInput, type TamboThread, type TamboThreadMessage } from "@tambo-ai/react";
-import { useEffect, useRef } from "react";
+import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import { useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Send, Sparkles, Paperclip, Share2, MoreVertical, MessageSquare } from "lucide-react";
 import { components } from "@/tambo/registry";
 import { Sidebar } from "./Sidebar";
 
-const TRANSIENT_STATUS_PREFIXES = ["tambo ai is thinking"];
 
-function isTransientStatusMessage(message: TamboThreadMessage) {
-    if (message.role === "user") return false;
-    if (!Array.isArray(message.content) || message.content.length === 0) return false;
 
-    if (message.metadata && typeof message.metadata === "object") {
-        const metadata = message.metadata as Record<string, unknown>;
-        if (
-            metadata.transient === true ||
-            metadata.isTransient === true ||
-            metadata.kind === "status" ||
-            metadata.type === "status"
-        ) {
-            return true;
-        }
-    }
 
-    const normalizedText = message.content
-        .map((part) => (part.type === "text" ? part.text ?? "" : ""))
-        .join("")
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase()
-        .replace(/^[^a-z0-9]+/g, "")
-        .replace(/[.!?\u2026]+$/g, "")
-        .trim();
 
-    if (!normalizedText) return false;
-
-    return TRANSIENT_STATUS_PREFIXES.some((prefix) => normalizedText === prefix);
+interface TamboCanvasProps {
+    initialPrompt?: string;
+    onPromptSent?: () => void;
 }
 
-function getVisibleMessages(thread: TamboThread | undefined, streaming: boolean) {
-    const messages = thread?.messages ?? [];
-    return streaming ? messages : messages.filter((message) => !isTransientStatusMessage(message));
-}
-
-export function TamboCanvas() {
+export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
     const { thread, streaming, generationStage, generationStatusMessage } = useTamboThread();
     const { value, setValue, submit } = useTamboThreadInput();
     const bottomRef = useRef<HTMLDivElement>(null);
 
+    // Auto-submit initial prompt
+    useEffect(() => {
+        if (initialPrompt && thread && thread.messages.length === 0) {
+            setValue(initialPrompt);
+            setTimeout(() => {
+                submit();
+                onPromptSent?.();
+            }, 50);
+        }
+    }, [initialPrompt, thread, setValue, submit, onPromptSent]);
+
     const isError = generationStage === "ERROR";
 
     // Helper to get text from message content
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const getMessageText = (message: any) => {
         if (!message.content) return "";
         if (typeof message.content === 'string') return message.content;
         if (Array.isArray(message.content)) {
             return message.content
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .filter((part: any) => part.type === 'text')
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .map((part: any) => part.text)
                 .join('');
         }
         return "";
     };
 
-    const messages = thread?.messages || [];
+    const messages = useMemo(() => thread?.messages || [], [thread]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, streaming]);
 
-    // Filter logic to hide programmatic messages and auto-generated AI follow-ups
+    // Fix: Use reduce instead of filter to handle state (lastComponentWasStartAssessment) purely
+    const visibleMessages = messages.reduce<{ visible: typeof messages; lastWasStartAssessment: boolean }>(
+        (acc, message) => {
+            const text = getMessageText(message);
+
+            // 1. Hide programmatic user messages
+            if (message.role === 'user') {
+                const isHiddenProgrammatic = text.match(/^(User answered (correctly|incorrectly)|I am ready)/);
+                if (isHiddenProgrammatic) {
+                    // If this is a valid user interaction, we clear the "StartAssessment" block
+                    acc.lastWasStartAssessment = false;
+                    return acc;
+                }
+                // Any other user message also clears the block
+                acc.lastWasStartAssessment = false;
+                acc.visible.push(message);
+                return acc;
+            }
+
+            // 2. AI Messages
+            // Check for both 'assistant' and 'model' (common in Vercel AI SDK / diverse providers)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (message.role === 'assistant' || (message.role as any) === 'model') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const rawName = message.component?.componentName || (message.component as any)?.name;
+
+                // Normalize name for check
+                const normalizedName = rawName ? rawName.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+                const isStartAssessment = normalizedName === 'startassessment'; // "startassessment" matches "StartAssessment", "start-assessment", etc.
+
+                // If this message IS the StartAssessment, mark it
+                if (isStartAssessment) {
+                    acc.lastWasStartAssessment = true;
+                    acc.visible.push(message);
+                    return acc;
+                }
+
+                // If the PREVIOUS relevant message was StartAssessment, and this is just text (the question), HIDE IT
+                if (acc.lastWasStartAssessment && !message.component) {
+                    return acc;
+                }
+
+                // If we are blocking, we generally block everything until user interaction
+                if (acc.lastWasStartAssessment) {
+                    return acc;
+                }
+            }
+
+            acc.visible.push(message);
+            return acc;
+        },
+        { visible: [], lastWasStartAssessment: false }
+    ).visible;
+
+    // Derive the state from the last visible message
+    const lastVisibleMessage = visibleMessages[visibleMessages.length - 1];
     let lastComponentWasStartAssessment = false;
-
-    // Remove 'index' as it is unused
-    const visibleMessages = messages.filter((message) => {
-        const text = getMessageText(message);
-
-        // 1. Hide programmatic user messages
-        if (message.role === 'user') {
-            const isHiddenProgrammatic = text.match(/^(User answered (correctly|incorrectly)|I am ready)/);
-            if (isHiddenProgrammatic) {
-                // If this is a valid user interaction, we clear the "StartAssessment" block
-                lastComponentWasStartAssessment = false;
-                return false;
-            }
-            // Any other user message also clears the block
-            lastComponentWasStartAssessment = false;
-            return true;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (lastVisibleMessage && (lastVisibleMessage.role === 'assistant' || (lastVisibleMessage.role as any) === 'model')) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rawName = lastVisibleMessage.component?.componentName || (lastVisibleMessage.component as any)?.name;
+        const normalizedName = rawName ? rawName.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+        if (normalizedName === 'startassessment') {
+            lastComponentWasStartAssessment = true;
         }
-
-        // 2. AI Messages
-        // Check for both 'assistant' and 'model' (common in Vercel AI SDK / diverse providers)
-        if (message.role === 'assistant' || (message.role as any) === 'model') {
-            const rawName = message.component?.componentName || (message.component as any)?.name;
-
-            // Normalize name for check
-            const normalizedName = rawName ? rawName.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
-            const isStartAssessment = normalizedName === 'startassessment'; // "startassessment" matches "StartAssessment", "start-assessment", etc.
-
-            // If this message IS the StartAssessment, mark it
-            if (isStartAssessment) {
-                lastComponentWasStartAssessment = true;
-                return true;
-            }
-
-            // If the PREVIOUS relevant message was StartAssessment, and this is just text (the question), HIDE IT
-            if (lastComponentWasStartAssessment && !message.component) {
-                return false;
-            }
-
-            // If we are blocking, we generally block everything until user interaction
-            if (lastComponentWasStartAssessment) {
-                return false;
-            }
-        }
-
-        return true;
-    });
+    }
 
     // Fix for "Thinking" showing at start: only show if we have VISIBLE messages
     // This prevents the "Thinking..." ghost on the empty screen
@@ -156,8 +159,9 @@ export function TamboCanvas() {
                         {visibleMessages.map((message, index) => {
                             // COMPONENT MATCHING LOGIC
                             let componentDef = null;
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             const rawName = message.component?.componentName || (message.component as any)?.name;
-                            const messageKey = (message.id && message.id !== "") ? message.id : `msg-${index}-${Date.now()}`;
+                            const messageKey = (message.id && message.id !== "") ? message.id : `msg-${index}`;
 
                             if (message.component && rawName) {
                                 componentDef = components.find(c => c.name === rawName);

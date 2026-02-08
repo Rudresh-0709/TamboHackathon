@@ -1,8 +1,68 @@
-import { Bell, Search, UploadCloud, ChevronDown, Check, Zap, ArrowRight, FileText, Plus } from "lucide-react";
-import { useState } from "react";
+import { Bell, Search, UploadCloud, ChevronDown, Check, Zap, ArrowRight, FileText, Plus, Loader2, X } from "lucide-react";
+import { useState, useRef } from "react";
 
-export function InteractiveModel() {
+interface InteractiveModelProps {
+    onNavigate: (view: 'chat' | 'file' | 'dashboard') => void;
+    onStartAssessment: (prompt: string) => void;
+}
+
+export function InteractiveModel({ onNavigate, onStartAssessment }: InteractiveModelProps) {
     const [fileDragging, setFileDragging] = useState(false);
+    const [topic, setTopic] = useState("");
+    const [audience, setAudience] = useState("Undergraduate");
+    const [complexity, setComplexity] = useState("Standard Adaptive");
+    const [fileContent, setFileContent] = useState<string | null>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
+    const [isReading, setIsReading] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) await processFile(file);
+    };
+
+    const processFile = async (file: File) => {
+        setFileName(file.name);
+        setIsReading(true);
+        try {
+            const text = await file.text();
+            setFileContent(text);
+        } catch (error) {
+            console.error("Error reading file:", error);
+            alert("Failed to read file.");
+        } finally {
+            setIsReading(false);
+        }
+    };
+
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        setFileDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) await processFile(file);
+    };
+
+    const handleGenerate = () => {
+        if (!fileContent && !topic) {
+            alert("Please provide a file or a topic.");
+            return;
+        }
+
+        const prompt = `
+Context:
+- Topic: ${topic || "General"}
+- Audience: ${audience}
+- Complexity: ${complexity}
+
+Content:
+${fileContent ? fileContent.slice(0, 20000) : "No file provided."}
+
+Please generate an assessment based on the above context and content.
+        `.trim();
+
+        onStartAssessment(prompt);
+    };
 
     return (
         <div className="min-h-screen bg-background-light font-sans text-slate-900">
@@ -20,7 +80,7 @@ export function InteractiveModel() {
                                 <span className="text-lg font-bold tracking-tight text-primary">Tambo AI</span>
                             </div>
                             <nav className="hidden md:flex items-center gap-6">
-                                <a href="#" className="text-sm font-bold text-primary">Dashboard</a>
+                                <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('dashboard'); }} className="text-sm font-bold text-primary">Dashboard</a>
                                 <a href="#" className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">Library</a>
                                 <a href="#" className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">Analytics</a>
                             </nav>
@@ -92,16 +152,51 @@ export function InteractiveModel() {
                                     `}
                                     onDragOver={(e) => { e.preventDefault(); setFileDragging(true); }}
                                     onDragLeave={() => setFileDragging(false)}
-                                    onDrop={(e) => { e.preventDefault(); setFileDragging(false); }}
+                                    onDrop={handleDrop}
+                                    onClick={() => fileInputRef.current?.click()}
                                 >
-                                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                        <UploadCloud className="w-8 h-8 text-primary" />
-                                    </div>
-                                    <h4 className="text-slate-900 font-bold text-lg mb-1">Upload File</h4>
-                                    <p className="text-slate-500 text-sm mb-6">Drag and drop PDF, DOCX or TXT files</p>
-                                    <button className="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/25">
-                                        Browse Files
-                                    </button>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept=".txt,.md,.csv,.json"
+                                        onChange={handleFileSelect}
+                                    />
+
+                                    {isReading ? (
+                                        <div className="flex flex-col items-center text-slate-900">
+                                            <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
+                                            <p>Reading file...</p>
+                                        </div>
+                                    ) : fileName ? (
+                                        <div className="flex flex-col items-center text-slate-900 relative z-20">
+                                            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
+                                                <Check className="w-8 h-8 text-green-500" />
+                                            </div>
+                                            <h4 className="text-slate-900 font-bold text-lg mb-1">{fileName}</h4>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setFileName(null);
+                                                    setFileContent(null);
+                                                }}
+                                                className="mt-2 text-xs text-red-500 hover:underline flex items-center gap-1"
+                                            >
+                                                <X className="w-3 h-3" /> Remove
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                <UploadCloud className="w-8 h-8 text-primary" />
+                                            </div>
+                                            <h4 className="text-slate-900 font-bold text-lg mb-1">Upload File</h4>
+                                            <p className="text-slate-500 text-sm mb-6">Drag and drop file or click to browse</p>
+                                            <button className="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/25">
+                                                Browse Files
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
@@ -112,26 +207,47 @@ export function InteractiveModel() {
                                     <div>
                                         <label className="block text-slate-400 text-xs font-bold mb-2">Subject Matter / Topic</label>
                                         <div className="relative">
-                                            <div className="w-full bg-slate-100 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors text-slate-700">
-                                                <span className="font-medium">Select a topic or category</span>
-                                                <ChevronDown className="w-4 h-4 text-slate-400" />
-                                            </div>
+                                            <input
+                                                type="text"
+                                                value={topic}
+                                                onChange={(e) => setTopic(e.target.value)}
+                                                placeholder="e.g. Molecular Biology"
+                                                className="w-full bg-slate-100 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                                            />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-slate-400 text-xs font-bold mb-2">Target Audience</label>
-                                            <div className="w-full bg-slate-100 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors text-slate-700">
-                                                <span className="font-medium text-sm">Undergraduate</span>
-                                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                                            <div className="relative">
+                                                <select
+                                                    value={audience}
+                                                    onChange={(e) => setAudience(e.target.value)}
+                                                    className="w-full bg-slate-100 rounded-lg px-4 py-3 appearance-none cursor-pointer text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                                                >
+                                                    <option>High School</option>
+                                                    <option>Undergraduate</option>
+                                                    <option>Graduate</option>
+                                                    <option>Professional</option>
+                                                </select>
+                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-slate-400 text-xs font-bold mb-2">Complexity</label>
-                                            <div className="w-full bg-slate-100 rounded-lg px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors text-slate-700">
-                                                <span className="font-medium text-sm">Standard Adaptive</span>
-                                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                                            <div className="relative">
+                                                <select
+                                                    value={complexity}
+                                                    onChange={(e) => setComplexity(e.target.value)}
+                                                    className="w-full bg-slate-100 rounded-lg px-4 py-3 appearance-none cursor-pointer text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                                                >
+                                                    <option>Beginner</option>
+                                                    <option>Standard Adaptive</option>
+                                                    <option>Advanced</option>
+                                                    <option>Expert</option>
+                                                </select>
+                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                             </div>
                                         </div>
                                     </div>
@@ -169,8 +285,14 @@ export function InteractiveModel() {
                             <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">i</div>
                             Estimated generation time: 45-60 seconds
                         </div>
-                        <button className="px-8 py-3 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-lg shadow-primary/25 flex items-center gap-2">
-                            <Zap className="w-4 h-4 fill-white" />
+                        <button
+                            onClick={handleGenerate}
+                            className={`px-8 py-3 font-bold rounded-lg transition-all shadow-lg flex items-center gap-2
+                                ${(fileContent || topic) ? 'bg-primary text-white hover:bg-blue-700 shadow-primary/25' : 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'}
+                            `}
+                            disabled={!fileContent && !topic}
+                        >
+                            <Zap className={`w-4 h-4 ${(!fileContent && !topic) ? 'fill-slate-500' : 'fill-white'}`} />
                             Generate Assessment
                         </button>
                     </div>

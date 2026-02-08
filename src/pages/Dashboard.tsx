@@ -11,7 +11,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 items-center justify-between">
-                        <div className="flex items-center gap-8">
+                            <div className="flex items-center gap-8">
                             <div className="flex items-center gap-2">
                                 <div className="bg-primary p-1.5 rounded-lg">
                                     <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
