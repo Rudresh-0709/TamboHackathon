@@ -122,9 +122,13 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
         }
     }
 
+    const lastMessage = visibleMessages[visibleMessages.length - 1];
+    const isLastMessageAssistant = lastMessage?.role === 'assistant' || (lastMessage?.role as any) === 'model';
+    const lastMessageHasContent = isLastMessageAssistant && (getMessageText(lastMessage).trim().length > 0 || !!lastMessage.component);
+
     // Fix for "Thinking" showing at start: only show if we have VISIBLE messages
     // This prevents the "Thinking..." ghost on the empty screen
-    const showThinking = streaming && visibleMessages.length > 0 && !lastComponentWasStartAssessment;
+    const showThinking = streaming && visibleMessages.length > 0 && !lastComponentWasStartAssessment && !lastMessageHasContent;
 
     return (
         <div className="flex h-screen w-full bg-white text-slate-900 font-sans overflow-hidden">
