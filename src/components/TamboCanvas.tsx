@@ -49,7 +49,16 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
         return "";
     };
 
-    const messages = useMemo(() => thread?.messages || [], [thread]);
+    const messages = useMemo(() => {
+        if (!thread) return [];
+        return thread.messages.filter(
+            (m) =>
+                !m.metadata ||
+                !(m.metadata as any).transient &&
+                (m.metadata as any)?.type !== "status"
+        );
+    }, [thread]);
+
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -238,9 +247,10 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
                                                         <ComponentToRender
                                                             {...message.component.props}
                                                             onSubmit={(isCorrect: boolean) => {
-                                                                const msg = isCorrect
-                                                                    ? "User answered correctly. Please provide the next question."
-                                                                    : "User answered incorrectly. Please provide feedback and the next question.";
+                                                                const msg = JSON.stringify({
+                                                                    event: "ANSWER_SUBMITTED",
+                                                                    correct: isCorrect
+                                                                });
 
                                                                 setValue(msg);
                                                                 // Yield to event loop to allow value update
