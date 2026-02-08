@@ -27,8 +27,4 @@ vite.config.d.ts
 *.sln
 *.sw?
 
-# Package files
-package.json
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+
