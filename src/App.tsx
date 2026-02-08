@@ -8,14 +8,18 @@ import { Dashboard } from "./pages/Dashboard";
 import { InteractiveModel } from "./components/InteractiveModel";
 
 function App() {
-  const [view, setView] = useState<'home' | 'dashboard' | 'chat' | 'file'>('home');
+  /* 
+    Changing default view to 'dashboard' since Home page buttons (Login/Get Started) 
+    were removed and Home is now effectively a static brochure.
+  */
+  const [view, setView] = useState<'home' | 'dashboard' | 'chat' | 'file'>('dashboard');
   const apiKey = import.meta.env.VITE_TAMBO_API_KEY;
 
   const [initialPrompt, setInitialPrompt] = useState<string | string[]>('');
   const [sessionId, setSessionId] = useState(0);
 
   if (view === 'home') {
-    return <Home onStart={() => setView('dashboard')} />;
+    return <Home />;
   }
 
   if (view === 'dashboard') {
@@ -47,7 +51,7 @@ function App() {
             Please add your <code className="bg-black/30 px-1 py-0.5 rounded text-red-300">VITE_TAMBO_API_KEY</code> to the <code className="bg-black/30 px-1 py-0.5 rounded text-red-300">.env</code> file in the project root.
           </p>
           <div className="text-xs text-white/30 bg-black/20 p-3 rounded-lg overflow-x-auto text-left">
-            VITE_TAMBO_API_KEY=tambo_...
+            VITE_TAMBO_API_KEY=studbud_...
           </div>
         </div>
       </div>

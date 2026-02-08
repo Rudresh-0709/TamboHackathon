@@ -1,9 +1,6 @@
 
-interface HomeProps {
-    onStart: () => void;
-}
 
-export function Home({ onStart }: HomeProps) {
+export function Home() {
     return (
         <div className="bg-background-light text-slate-900 transition-colors duration-300 font-sans min-h-screen">
             {/* TopNavBar */}
@@ -16,7 +13,7 @@ export function Home({ onStart }: HomeProps) {
                                     <path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z" fill="currentColor"></path>
                                 </svg>
                             </div>
-                            <span className="text-xl font-bold tracking-tight">Tambo AI</span>
+                            <span className="text-xl font-bold tracking-tight">StudBud</span>
                         </div>
                         <nav className="hidden md:flex items-center gap-8">
                             <a href="#" className="text-sm font-medium hover:text-primary transition-colors">Features</a>
@@ -25,13 +22,7 @@ export function Home({ onStart }: HomeProps) {
                             <a href="#" className="text-sm font-medium hover:text-primary transition-colors">Docs</a>
                         </nav>
                         <div className="flex items-center gap-3">
-                            <button onClick={onStart} className="px-4 py-2 text-sm font-semibold hover:text-primary transition-colors cursor-pointer">Login</button>
-                            <button
-                                onClick={onStart}
-                                className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-all shadow-lg shadow-primary/20 cursor-pointer"
-                            >
-                                Get Started
-                            </button>
+                            {/* Buttons removed */}
                         </div>
                     </div>
                 </div>
@@ -62,19 +53,10 @@ export function Home({ onStart }: HomeProps) {
                                     </span> <span className="block lg:inline">in Real-Time</span>
                                 </h1>
                                 <p className="relative z-10 text-lg lg:text-xl text-gray-800 leading-relaxed max-w-xl">
-                                    Leverage the Tambo AI SDK to create dynamic, generative test interfaces that personalize the learning journey for every student based on performance.
+                                    Leverage the StudBud SDK to create dynamic, generative test interfaces that personalize the learning journey for every student based on performance.
                                 </p>
                                 <div className="flex flex-wrap gap-4 relative z-10">
-                                    <button
-                                        onClick={onStart}
-                                        className="px-8 py-4 bg-primary text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-xl shadow-primary/25 text-lg cursor-pointer"
-                                    >
-                                        Start Building Free
-                                    </button>
-                                    <button className="px-8 py-4 bg-white border border-slate-200 font-bold rounded-xl hover:bg-slate-50 transition-all text-lg flex items-center gap-2 cursor-pointer">
-                                        <span className="material-symbols-outlined">play_circle</span>
-                                        View Demo
-                                    </button>
+                                    {/* CTAs Removed */}
                                 </div>
                                 <div className="flex items-center gap-4 text-sm text-slate-500">
                                     <div className="flex -space-x-2">
@@ -161,7 +143,7 @@ export function Home({ onStart }: HomeProps) {
                                 </div>
                                 <h3 className="text-xl font-bold mb-3 text-slate-900">2. Generate UI</h3>
                                 <p className="text-slate-600 text-sm leading-relaxed">
-                                    Tambo AI dynamically crafts interactive React components and unique assessment layouts in real-time.
+                                    StudBud dynamically crafts interactive React components and unique assessment layouts in real-time.
                                 </p>
                             </div>
                             {/* Step 3 */}
@@ -186,9 +168,6 @@ export function Home({ onStart }: HomeProps) {
                                 <h2 className="text-3xl lg:text-5xl font-black mb-4 tracking-tight text-slate-900">Intelligence built into every component.</h2>
                                 <p className="text-slate-600 text-lg">Experience the power of generative intelligence in education through our robust React SDK.</p>
                             </div>
-                            <button className="px-6 py-3 border border-slate-300 font-semibold rounded-lg hover:bg-white transition-colors cursor-pointer text-slate-700 bg-white">
-                                Explore all features
-                            </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {/* Cards */}
@@ -222,17 +201,9 @@ export function Home({ onStart }: HomeProps) {
                             <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
                             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl"></div>
                             <h2 className="text-3xl lg:text-5xl font-black mb-6 relative z-10">Ready to transform assessment?</h2>
-                            <p className="text-blue-100 text-lg mb-10 max-w-2xl mx-auto relative z-10">Join 500+ institutions using Tambo AI to deliver truly personalized learning experiences.</p>
+                            <p className="text-blue-100 text-lg mb-10 max-w-2xl mx-auto relative z-10">Join 500+ institutions using StudBud to deliver truly personalized learning experiences.</p>
                             <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
-                                <button
-                                    onClick={onStart}
-                                    className="px-10 py-4 bg-white text-primary font-bold rounded-xl hover:bg-slate-100 transition-all shadow-lg text-lg cursor-pointer"
-                                >
-                                    Get Started Now
-                                </button>
-                                <button className="px-10 py-4 bg-primary border border-white/30 text-white font-bold rounded-xl hover:bg-white/10 transition-all text-lg cursor-pointer">
-                                    Schedule a Demo
-                                </button>
+                                {/* CTAs removed */}
                             </div>
                         </div>
                     </div>
@@ -250,7 +221,7 @@ export function Home({ onStart }: HomeProps) {
                                         <path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z" fill="currentColor"></path>
                                     </svg>
                                 </div>
-                                <span className="text-xl font-bold tracking-tight">Tambo AI</span>
+                                <span className="text-xl font-bold tracking-tight">StudBud</span>
                             </div>
                             <p className="text-slate-600 max-w-xs mb-6 leading-relaxed">
                                 The world's most advanced SDK for generative and adaptive assessment experiences.
@@ -293,7 +264,7 @@ export function Home({ onStart }: HomeProps) {
                         </div>
                     </div>
                     <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-                        <p>© 2024 Tambo AI, Inc. All rights reserved.</p>
+                        <p>© 2024 StudBud, Inc. All rights reserved.</p>
                         <div className="flex items-center gap-6">
                             <span className="flex items-center gap-1">
                                 <span className="w-2 h-2 rounded-full bg-green-500"></span> All systems operational

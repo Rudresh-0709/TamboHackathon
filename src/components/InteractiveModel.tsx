@@ -1,4 +1,4 @@
-import { Bell, Search, UploadCloud, ChevronDown, Check, Zap, ArrowRight, FileText, Plus, Loader2, X } from "lucide-react";
+import { Bell, Search, UploadCloud, ChevronDown, Check, Zap, FileText, Loader2, X } from "lucide-react";
 import { useState, useRef } from "react";
 import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore - pdfjs-dist worker import is specialized in Vite
@@ -200,7 +200,7 @@ Please generate an assessment based on the above context and content.
                                         <path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z" fill="currentColor"></path>
                                     </svg>
                                 </div>
-                                <span className="text-lg font-bold tracking-tight text-primary">Tambo AI</span>
+                                <span className="text-lg font-bold tracking-tight text-primary">StudBud</span>
                             </div>
                             <nav className="hidden md:flex items-center gap-6">
                                 <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('dashboard'); }} className="text-sm font-bold text-primary">Dashboard</a>
@@ -242,7 +242,7 @@ Please generate an assessment based on the above context and content.
                         Transform Content into Intelligence
                     </h1>
                     <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-                        Upload your source material and let our AI generate a personalized, adaptive assessment tailored to your learning objectives.
+                        StudBud AI is analyzing the provided material to generate a personalized learning experience for you...red to your learning objectives.
                     </p>
                 </div>
 
@@ -413,7 +413,7 @@ Please generate an assessment based on the above context and content.
                                             <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
                                                 <Check className="w-3 h-3 text-white" strokeWidth={4} />
                                             </div>
-                                            Tambo AI Engine Ready
+                                            StudBud Engine Ready
                                         </div>
                                     </div>
                                 </div>
@@ -453,69 +453,7 @@ Please generate an assessment based on the above context and content.
                     </div>
                 </div>
 
-                {/* Recent Assessments */}
-                <div>
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                            <div className="p-1 rounded bg-slate-100">
-                                <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            Recent Assessments
-                        </h3>
-                        <button className="text-primary text-sm font-bold hover:text-blue-700">View All</button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Card 1 */}
-                        <div className="bg-slate-600 rounded-xl p-6 relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all">
-                            <div className="absolute top-0 right-0 p-4">
-                                <span className="text-[10px] font-bold bg-white/10 text-white px-2 py-1 rounded border border-white/10">READY</span>
-                            </div>
-                            <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center mb-16">
-                                <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" /></svg>
-                            </div>
-                            <h4 className="text-white font-bold text-lg mb-1">Cell Biology Final</h4>
-                            <p className="text-slate-400 text-xs mb-4">Generated 2 hours ago • 45 Questions</p>
-                            <div className="flex items-center justify-between">
-                                <div className="flex -space-x-2">
-                                    <div className="w-6 h-6 rounded-full bg-slate-500 border border-slate-600"></div>
-                                    <div className="w-6 h-6 rounded-full bg-slate-400 border border-slate-600"></div>
-                                    <div className="w-6 h-6 rounded-full bg-slate-300 border border-slate-600"></div>
-                                </div>
-                                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
-                            </div>
-                        </div>
-
-                        {/* Card 2 */}
-                        <div className="bg-slate-600 rounded-xl p-6 relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all">
-                            <div className="absolute top-0 right-0 p-4">
-                                <span className="text-[10px] font-bold bg-white/10 text-white px-2 py-1 rounded border border-white/10">READY</span>
-                            </div>
-                            <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mb-16">
-                                <span className="text-blue-400 font-serif font-bold text-xl">Σ</span>
-                            </div>
-                            <h4 className="text-white font-bold text-lg mb-1">Linear Algebra II</h4>
-                            <p className="text-slate-400 text-xs mb-4">Generated yesterday • 20 Questions</p>
-                            <div className="flex items-center justify-between">
-                                <div className="flex -space-x-2">
-                                    <div className="w-6 h-6 rounded-full bg-blue-500 border border-slate-600"></div>
-                                    <div className="w-6 h-6 rounded-full bg-blue-400 border border-slate-600"></div>
-                                </div>
-                                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
-                            </div>
-                        </div>
-
-                        {/* New Draft Card */}
-                        <div className="bg-transparent rounded-xl p-6 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center h-full hover:border-primary hover:bg-slate-50 transition-all cursor-pointer group min-h-[240px]">
-                            <div className="w-12 h-12 rounded-full border border-slate-300 flex items-center justify-center mb-3 group-hover:border-primary group-hover:text-primary transition-colors text-slate-400">
-                                <Plus className="w-6 h-6" />
-                            </div>
-                            <span className="font-bold text-slate-500 group-hover:text-primary transition-colors">New Draft</span>
-                        </div>
-                    </div>
-                </div>
+                {/* Recent Assessments Removed */}
             </main>
 
             <footer className="mt-20 py-8 border-t border-slate-200 bg-white/50">
@@ -529,7 +467,7 @@ Please generate an assessment based on the above context and content.
                         <a href="#" className="hover:text-primary">API Keys</a>
                     </div>
                     <div>
-                        © 2024 Tambo AI React SDK. All rights reserved.
+                        © 2024 StudBud React SDK. All rights reserved.
                     </div>
                 </div>
             </footer>

@@ -1,5 +1,4 @@
-import { Plus, Clock, Settings, MoreVertical, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Plus, Settings, MoreVertical, Sparkles } from "lucide-react";
 
 export function Sidebar() {
     return (
@@ -11,7 +10,7 @@ export function Sidebar() {
                         <Sparkles className="w-5 h-5 text-white fill-white" />
                     </div>
                     <div>
-                        <h1 className="font-bold text-slate-900 text-lg leading-tight">Tambo AI</h1>
+                        <h1 className="font-bold text-slate-900 text-lg leading-tight">StudBud</h1>
                         <p className="text-xs text-slate-500 font-medium">Adaptive Learning</p>
                     </div>
                 </div>
@@ -22,31 +21,7 @@ export function Sidebar() {
                 </button>
             </div>
 
-            {/* Recent Assessments */}
-            <div className="px-4 flex-1 overflow-y-auto">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider px-4 mb-3">
-                    Recent Assessments
-                </div>
-                <div className="space-y-1">
-                    {[
-                        "Intro to Photosynthesis",
-                        "Cell Biology Basics",
-                        "World War II Overview",
-                        "Organic Chemistry 101"
-                    ].map((item, i) => (
-                        <button
-                            key={i}
-                            className={cn(
-                                "w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-3",
-                                i === 0 ? "bg-blue-50 text-blue-700" : "text-slate-600 hover:bg-slate-50"
-                            )}
-                        >
-                            <Clock className={cn("w-4 h-4", i === 0 ? "text-blue-500" : "text-slate-400")} />
-                            <span className="truncate">{item}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
+            {/* Recent Assessments Removed */}
 
             {/* User Footer */}
             <div className="p-4 border-t border-slate-200">

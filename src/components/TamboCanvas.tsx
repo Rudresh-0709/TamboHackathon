@@ -26,7 +26,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
 
     // Debug prop changes
     useEffect(() => {
-        console.log("[Tambo] initialPrompt prop changed:", {
+        console.log("[StudBud] initialPrompt prop changed:", {
             type: typeof initialPrompt,
             isArray: Array.isArray(initialPrompt),
             length: Array.isArray(initialPrompt) ? initialPrompt.length : 'N/A'
@@ -41,7 +41,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
         const prompts = Array.isArray(initialPrompt) ? initialPrompt : [initialPrompt];
         promptChunks.current = prompts;
         setTotalPartCount(prompts.length);
-        console.log("[Tambo] 🚀 Starting fresh sequential submission. Total Parts:", prompts.length);
+        console.log("[StudBud] 🚀 Starting fresh sequential submission. Total Parts:", prompts.length);
         onPromptSent?.();
 
         const submitSequential = async (idx: number) => {
@@ -51,7 +51,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
             }
 
             setPartIdx(idx + 1);
-            console.log(`[Tambo] 📤 Uploading part ${idx + 1}/${prompts.length}...`);
+            console.log(`[StudBud] 📤 Uploading part ${idx + 1}/${prompts.length}...`);
 
             try {
                 setValue(prompts[idx]);
@@ -59,15 +59,15 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
                 // EXTRA LOUD WAIT
                 setTimeout(async () => {
                     try {
-                        console.log(`[Tambo] 🔥 Firing submit() for part ${idx + 1}...`);
+                        console.log(`[StudBud] 🔥 Firing submit() for part ${idx + 1}...`);
                         await submit();
-                        console.log(`[Tambo] ✅ submit() call completed for part ${idx + 1}.`);
+                        console.log(`[StudBud] ✅ submit() call completed for part ${idx + 1}.`);
                     } catch (submitErr: any) {
-                        console.error(`[Tambo] ❌ submit() ERROR for part ${idx + 1}:`, submitErr);
+                        console.error(`[StudBud] ❌ submit() ERROR for part ${idx + 1}:`, submitErr);
                     }
                 }, 800);
             } catch (err: any) {
-                console.error(`[Tambo] ❌ Logic Error in part ${idx + 1}:`, err);
+                console.error(`[StudBud] ❌ Logic Error in part ${idx + 1}:`, err);
             }
         };
 
@@ -90,14 +90,14 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
         const prompts = promptChunks.current;
         const nextIdx = partIdx;
         if (nextIdx < totalPartCount && prompts[nextIdx]) {
-            console.log(`[Tambo] Manual advance to part ${nextIdx + 1}`);
+            console.log(`[StudBud] Manual advance to part ${nextIdx + 1}`);
             setPartIdx(nextIdx + 1);
             setValue(prompts[nextIdx]);
             setTimeout(() => {
-                submit().catch(e => console.error("[Tambo] Manual submit error:", e));
+                submit().catch(e => console.error("[StudBud] Manual submit error:", e));
             }, 300);
         } else {
-            console.warn("[Tambo] Cannot force next: No prompts available or already at end.", {
+            console.warn("[StudBud] Cannot force next: No prompts available or already at end.", {
                 nextIdx,
                 totalPartCount,
                 promptsLength: prompts.length,
@@ -109,10 +109,10 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
     const resendCurrentPart = () => {
         const prompts = promptChunks.current;
         if (partIdx > 0 && prompts[partIdx - 1]) {
-            console.log(`[Tambo] Manual resend of part ${partIdx}`);
+            console.log(`[StudBud] Manual resend of part ${partIdx}`);
             setValue(prompts[partIdx - 1]);
             setTimeout(() => {
-                submit().catch(e => console.error("[Tambo] Manual resend error:", e));
+                submit().catch(e => console.error("[StudBud] Manual resend error:", e));
             }, 300);
         }
     };
@@ -133,7 +133,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
             if (text.includes("RECEIVING_PART_") && partIdx < totalPartCount) {
                 const finishedPart = partIdx;
 
-                console.log(`[Tambo] ACK received for part ${finishedPart}. auto-advancing to ${finishedPart + 1}...`);
+                console.log(`[StudBud] ACK received for part ${finishedPart}. auto-advancing to ${finishedPart + 1}...`);
 
                 const timer = setTimeout(async () => {
                     const prompts = promptChunks.current;
@@ -141,7 +141,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
                         setPartIdx(finishedPart + 1);
                         setValue(prompts[finishedPart]);
                         setTimeout(() => {
-                            submit().catch(e => console.error("[Tambo] Background submit error:", e));
+                            submit().catch(e => console.error("[StudBud] Background submit error:", e));
                         }, 200);
                     }
                 }, 800);
@@ -158,7 +158,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
         const currentPart = partIdx;
         const watchdog = setTimeout(() => {
             if (partIdx === currentPart) {
-                console.warn(`[Tambo] Watchdog: Part ${currentPart} hung for 20s. Auto-forcing next...`);
+                console.warn(`[StudBud] Watchdog: Part ${currentPart} hung for 20s. Auto-forcing next...`);
                 forceNextPart();
             }
         }, 20000); // 20s safety hatch
@@ -166,16 +166,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
         return () => clearTimeout(watchdog);
     }, [initialPrompt, streaming, partIdx, totalPartCount]); // Reset watchdog on streaming changes or part changes
 
-    // Auto-clear input
-    useEffect(() => {
-        if (autoSubmitted.current && thread && thread.messages.length > 0 && value) {
-            // Only clear if we aren't about to/currently submitting the massive context
-            const isInternalSync = value.startsWith("INTERNAL_SYNC_PART_");
-            if (!isInternalSync) {
-                setValue("");
-            }
-        }
-    }, [thread, value, setValue]);
+
 
     // UI Reactivity Helpers
     const displayPartIdx = partIdx;
@@ -374,7 +365,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
                                 </div>
                                 <h2 className="text-xl font-bold text-slate-800 mb-2">Preparing Your Assessment</h2>
                                 <p className="text-slate-500 max-w-sm mx-auto leading-relaxed mb-4">
-                                    Tambo AI is analyzing the provided material to generate a personalized learning experience for you...
+                                    StudBud AI is analyzing the provided material to generate a personalized learning experience for you...
                                 </p>
 
                                 <div className="bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
@@ -519,7 +510,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
                                             </div>
                                             <div className="flex-1 space-y-6">
                                                 {hasText && (
-                                                    <div className="bg-white border border-slate-200 px-6 py-5 rounded-2xl rounded-tl-sm text-slate-700 text-sm md:text-base leading-relaxed shadow-sm">
+                                                    <div className="bg-slate-50 border border-slate-200 px-6 py-5 rounded-2xl rounded-tl-sm text-slate-700 text-sm md:text-base leading-relaxed shadow-sm">
                                                         {textContent}
                                                     </div>
                                                 )}
@@ -562,7 +553,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
                                     <Sparkles className="w-4 h-4 text-indigo-500 fill-indigo-500" />
                                 </div>
                                 <div className="bg-white border border-slate-100 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
-                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tambo AI is thinking</span>
+                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">StudBud AI is thinking</span>
                                     <div className="flex gap-1">
                                         <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
                                         <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
@@ -591,7 +582,7 @@ export function TamboCanvas({ initialPrompt, onPromptSent }: TamboCanvasProps) {
                             </button>
                             <input
                                 type="text"
-                                placeholder="Ask Tambo AI to generate an assessment or explain a concept..."
+                                placeholder="Ask StudBud AI to generate an assessment or explain a concept..."
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
                                 className="flex-1 bg-transparent border-none focus:ring-0 text-slate-800 placeholder:text-slate-400 h-10 font-medium"
